@@ -1,0 +1,135 @@
+<!-- styles -->
+<link rel="stylesheet" href="https://ssl.gstatic.com/docs/script/css/add-ons.css">
+<style>
+  button.right {
+  float: right;
+  }
+</style>
+
+<!-- content -->
+<form id="prefs">
+<div class="block">
+  <? for ( var key in fixes ) { ?>
+  <input type="checkbox" name="fix" value="<?= key ?>" id="pref-<?= key ?>"  onclick="updateSaveButton()" <?= fixes[key].dflt ? 'checked' : ''?> > <?= fixes[key].desc ?></input><br>
+  <? } ?>
+</div>
+</form>
+<div class="button-bar">
+  <button class="action" onclick="save()">OK</button>
+  <button onclick="close()">Cancel</button>
+</div>
+<div class="button-bar-right">
+  <button id="save-default" onclick="saveDefault()">Set as default</button>
+</div>
+
+<!-- scripts -->
+<script>
+var prefs = {
+  <? for ( var key in prefs ) { ?>
+    '<?= key ?>': Boolean(<?= prefs[key] ?>),
+  <? } ?>
+  '': '',
+};
+
+delete prefs[''];
+
+var defaults = {
+  <? for ( var key in defaults ) { ?>
+    '<?= key ?>': Boolean(<?= defaults[key] ?>),
+  <? } ?>
+  '': '',
+};
+
+delete defaults[''];
+
+for (var key in defaults) {
+  console.log("html: defaults[" + key + "] = " + defaults[key]);
+}
+
+
+updateSaveButton();
+
+function save() {
+  this.disabled = true;
+
+  google.script.run
+          .withSuccessHandler(close)
+          .savePreferences(form());
+}
+
+function saveDefault() {
+  this.disabled = true;
+
+  defaults = formValue();
+
+  google.script.run
+          .withSuccessHandler(updateSaveButton)
+          .saveDefaults(form());
+}
+
+function ms(m) {
+  var s = "";
+  for (var key in m) {
+    if (s.length > 0) { s += ", "; }
+    s += key + ": " + m[key] + " (" + toType(m[key]) + ")"
+  }
+  return s;
+}
+
+function updateSaveButton() {
+  var button = document.getElementById('save-default');
+  var currentDefault = isDefault();
+
+  button.disabled = currentDefault;
+  button.innerHTML = currentDefault ? 'Saved as default' : 'Set as default';
+}
+
+function isDefault() {
+  var current = formValue();
+
+  console.log("defaults: " + ms(defaults));
+  console.log("current: " + ms(current));
+  for (var key in defaults) {
+    console.log("isDefault: " + key + ": " + defaults[key] + "/" + current[key]);
+    if (defaults[key] !== current[key]) {
+      console.log("!=");
+      return false;
+    }
+  }
+  console.log("==");
+
+  return true;
+}
+
+function toType(obj) {
+  return ({}).toString.call(obj);
+}
+
+function formValue() {
+  var inputs = form().getElementsByTagName('input');
+
+  var value = {};
+
+  console.log('inputs: ' + inputs.length + ": " + inputs);
+  for (var i = 0; i < inputs.length; i++) {
+    var e = inputs[i];
+    console.log(i + ": " + toType(e) + ": " + typeof e1 + ": " + e);
+    console.log("   " + e.name + ": " + e.checked);
+    value[e.value] = e.checked;
+  }
+
+  console.log("value: " + value);
+  for (var key in value) {
+    console.log("value[" + key + "] = " + value[key]);
+  }
+  return value;
+}
+
+function form() {
+  return document.getElementById('prefs');
+}
+
+function close() {
+  google.script.host.close();
+}
+</script>

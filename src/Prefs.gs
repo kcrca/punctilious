@@ -4,17 +4,22 @@ var fixes = {
     re: /--/g,
     repl: '—',
   },
-  'emdash-spaces': {
+  'emdash-nospaces': {
     desc: 'remove spaces around — (em dash)',
     re: / *— */g,
     repl: '—',
+  },
+  'emdash-spaces': {
+    desc: 'require spaces around — (em dash)',
+    re: / *— */g,
+    repl: ' — ',
   },
   'endash': {
     desc: '"-" between numbers becomes — (en dash)',
     re: /([0-9] *)-( *[0-9])/g,
     repl: '$1–$2',
   },
-  'endash-spaces': {
+  'endash-nospaces': {
     desc: 'remove spaces around — (en dash)',
     re: / *– */g,
     repl: '–',
@@ -24,17 +29,17 @@ var fixes = {
     re: /- *([0-9])/g,
     repl: '−$1',
   },
-  'minus-spaces': {
+  'minus-nospaces': {
     desc: 'remove spaces after − (math minus)',
     re: /− */g,
     repl: '−',
   },
-  'hyphen-spaces': {
+  'hyphen-nospaces': {
     desc: 'remove spaces around - (hyphen)',
     re: / *- */g,
     repl: '-',
   },
-  'extra-spaces': {
+  'extra-nospaces': {
     desc: 'remove extra spaces (two or more)',
     re: '/  +/',
     repl: ' ',

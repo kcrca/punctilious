@@ -37,12 +37,9 @@ function Reviser() {
     // elem is the Text element.
     // text is the text in the original node, not just the selected part.
     var text = elem.getText();
-
-    var partial = range.isPartial();
     var startIndex;
     var endIndex;
-
-    if (partial) {
+    if (range.isPartial()) {
       startIndex = range.getStartOffset();
       endIndex = range.getEndOffsetInclusive();
     }
@@ -66,7 +63,6 @@ function Reviser() {
     // len is the length of the updated text node.
     var seenFirst = false;
     var pos = startIndex;
-    var last = text.length - 1;
     for (var r = 0; r < changes.length - 1; r++) {
       self.dbg(depth, "--- r = " + r);
       var start = changes[r];
@@ -100,15 +96,10 @@ function Reviser() {
           newAttrs = [null];
         }
       }
-      var curLast = end - start;
-      self.dbg(depth, "pos: " + pos + ", last = " + last + ", curLast = " + curLast + ", tl = " + (elem.getText().length - 1) + ", curText = '" + curText + "', newText = '" + newText);
-      elem.deleteText(pos, pos + curLast);
+      self.dbg(depth, "pos: " + pos + ", curText = '" + curText + "', newText = '" + newText);
+      elem.deleteText(pos, pos + end - start);
       // inserting at length+1 is not allowed, must special-case an append
-      if (pos >= elem.getText().length/*pos + curLast >= last*/) {
-        elem.appendText(newText);
-      } else {
-        elem.insertText(pos, newText);
-      }
+      elem.insertText(pos, newText);
       if (newAttrs.length > newText.length) {
       newAttrs = newAttrs.slice(0, newText.length);
       }
@@ -127,7 +118,6 @@ function Reviser() {
       }
 
       pos += newText.length;
-      last += newText.length - curText.length;
     }
   }
   this._modify = function(fn, attrFn) {

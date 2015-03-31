@@ -21,8 +21,8 @@ var fixes = {
   },
   'minus': {
     desc: '"-" before a number becomes − (math minus)',
-    re: /- *[0-9]/g,
-    repl: '−',
+    re: /- *([0-9])/g,
+    repl: '−$1',
   },
   'minus-spaces': {
     desc: 'remove spaces after − (math minus)',

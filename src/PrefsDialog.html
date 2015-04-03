@@ -15,48 +15,59 @@
   <input class="pref" type="checkbox" name="fix" value="<?= f.name ?>" id="pref-<?= f.name ?>">
   <label><?= f.desc ?></label><br>
   <? } ?>
-  <textarea class="pref" name="<?= ignoredFontsName ?>" id="<?= ignoredFontsName ?>" rows="3" style="left-indent: 3em; width: 100%"
-            onchange="updateSaveButton()"></textarea>
+  <textarea class="pref" name="<?= ignoredFonts.name ?>" id="<?= ignoredFonts.name ?>" rows="3" style="left-indent: 3em; width: 100%"
+            onchange="canonicalizeFontNames(),updateSaveDefaultsButton()"></textarea>
 </div>
 </form>
 <div class="button-bar">
-  <button id="ok" class="action">OK</button>
-  <button>Cancel</button>
+  <button id="ok" class="action" onclick="save()">OK</button>
+  <button onclick="google.script.host.close()">Cancel</button>
 </div>
 <div class="button-bar-right">
-  <button id="save-default" onclick="saveDefault()">Save as defaults</button>
+  <button id="save-default" onclick="saveDefault()">Save as Defaults</button>
 </div>
 
 <!-- scripts -->
 <script>
+// Copy in values of variables that matter on the client side.
+var prefs = {};
 <? for (var i in exports) { ?>
 <?   var v = exports[i]; ?>
 <?   if (true) { ?>
 var <?!=v?> = <?!=JSON.stringify(eval(v));?>;
+prefs["<?!=v?>"] = <?!=v?>;
+console.log("<?!=v?> = " + JSON.stringify(<?!=v?>, null, 2));
 <?   } ?>
 <? } ?>
 
-$("input.pref").each(function(index) {
+var boxes = $("input.pref");
+var igFonts = $("#"+ignoredFonts.name);
+
+boxes.each(function() {
   var $this = $(this);
   var name = $this.attr("value");
   var f = fixesByName[name];
-  this.checked = f.enabled;
-  $this.click(updateSaveButton);
+  this.checked = f.cur;
+  $this.change(function() {
+    f.cur = this.checked;
+  });
 });
 
-$("#"+ignoredFontsName).text(ignoredFonts.join(", "))
-  .change(updateSaveButton);
 
-$("#ok").click(save);
-$("#cancel").click(close);
-$("#save-default").click(saveDefault);
+// The call to canonicalizeFontNames must preceed the call to updateSaveDefaultsButton
+igFonts.val(ignoredFonts.cur.join(", "))
+  .blur(canonicalizeFontNames);
+canonicalizeFontNames(); // make sure they're always in canonical form
+
+$(".pref").change(updateSaveDefaultsButton);
 
 function save() {
   this.disabled = true;
 
+  console.log("save:\n" + JSON.stringify(prefs, null, 2));
   google.script.run
           .withSuccessHandler(close)
-          .savePreferences();
+          .savePreferences(prefs);
 }
 
 function saveDefault() {
@@ -65,18 +76,60 @@ function saveDefault() {
   defaults = formname();
 
   google.script.run
-          .withSuccessHandler(updateSaveButton)
-          .saveDefaults();
+          .withSuccessHandler(updateSaveDefaultsButton)
+          .saveDefaults(prefs);
 }
 
 function close() {
   google.script.host.close();
 }
 
+function canonicalizeFontNames() {
+  var ig = $("#"+ignoredFonts.name);
+  var curStr = ig.val();
+  var valStr = curStr.trim().replace(/\s+/g, " ");
+  ignoredFonts.cur = valStr.split(/, /).sort();
+  valStr = ignoredFonts.cur.join(", ");
+  console.log("curStr = '" + curStr + "'");
+  console.log("valStr = '" + valStr + "'");
+  if (valStr != curStr) {
+    ig.val(valStr);
+  }
+}
+
+function updateSaveDefaultsButton() {
+  var isDflt = true;
+
+  var ig = $("#"+ignoredFonts.name);
+  var val = ig.val().split(/, /) || [];
+  // canonicalizedFontNames makes sure things are sorted.
+  isDflt = val.toString() == ignoredFonts.dflt.toString();
+  if (!isDflt) {
+    console.log("mismatch: " + ignoredFonts.name + ": is " + val + ", dflt " + ignoredFonts.dflt);
+  }
+
+  if (isDflt) {
+    $("input.prefs").each(function() {
+      var f = prefsByName[$(this).attr("value")];
+      if (this.selected != f.dflt) {
+        isDflt = false;
+        console.log("mismatch: " + f.name + ": is " + this.selected + ", dflt " + f.dflt);
+      }
+      return isDflt;
+    });
+  }
+
+  console.log("isDflt = " + isDflt);
+  var button = $("#save-default");
+  button.prop("disabled", isDflt);
+}
+
+updateSaveDefaultsButton();
+
 </script>
 
 <script>
-//updateSaveButton();
+//updateSaveDefaultsButton();
 
 //function saveDefault() {
 //  this.disabled = true;
@@ -84,11 +137,11 @@ function close() {
 //  defaults = formname();
 //
 //  google.script.run
-//          .withSuccessHandler(updateSaveButton)
+//          .withSuccessHandler(updateSaveDefaultsButton)
 //          .saveDefaults();
 //}
 //
-//function updateSaveButton() {
+//function updateSaveDefaultsButton() {
 //  var button = document.getElementById('save-default');
 //  var currentDefault = isDefault();
 //

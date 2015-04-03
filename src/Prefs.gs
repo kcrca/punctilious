@@ -67,47 +67,50 @@ for (var key in fixes) {
   if (!f.hasOwnProperty('dflt')) {
     f.dflt = true;
   }
-  f.enabled = f.dflt;
   fixesByName[f.name] = f;
 }
 
-var ignoredFonts = ["Consolas", "Courier", "Lucida Sans Typewriter"];
-var ignoredFontsName = "ignorable-fonts";
+var ignoredFonts = {
+  name: "ignored-fonts",
+  dflt: ["Consolas", "Courier", "Lucida Sans Typewriter"].sort(),
+};
 
-var exports = ["fixesByName", "ignoredFonts", "ignoredFontsName"];
+var exports = ["fixesByName", "ignoredFonts"];
 
 function showPreferences() {
   var dialog = HtmlService.createTemplateFromFile("PrefsDialog");
 
   var userPrefs = PropertiesService.getUserProperties();
-  var defaults = {};
 
   for (var i = 0; i < fixes.length; i++) {
     f = fixes[i];
-    defaults[f.name] = userPrefs.getProperty(f.name) || f.dflt;
+    f.dflt = userPrefs.getProperty(f.name) || f.dflt;
   }
-  var ignFontsKey = "ignore-fonts-which";
-  defaults[ignFontsKey] = userPrefs.getProperty(ignFontsKey) || "Consolas, Courier, Lucida Sans Typewriter";
+  ignoredFonts.dflt = userPrefs.getProperty(ignoredFonts.name) || ignoredFonts.dflt;
 
   var docPrefs = PropertiesService.getDocumentProperties();
-  var prefs = [];
 
   for (var i = 0; i < fixes.length; i++) {
     f = fixes[i];
-    prefs[f.name] = docPrefs.getProperty(f.name) || defaults[f.name];
+    f.cur = docPrefs.getProperty(f.name) || f.dflt;
   }
-  prefs[ignFontsKey] = docPrefs.getProperty(ignFontsKey) || defaults[ignFontsKey];
-
-  dialog.defaults = defaults;
-  dialog.prefs = prefs;
+  ignoredFonts.cur = userPrefs.getProperty(ignoredFonts.name) || ignoredFonts.dflt;
 
   DocumentApp.getUi().showModalDialog(dialog.evaluate(), "Preferences");
 }
 
-function savePreferences(form) {
-  PropertiesService.getDocumentProperties().setProperties(form);
+function unpackPrefs(prefs) {
+  ignoredFonts = prefs["ignoredFonts"];
+  fixesByName = prefs["fixesByName"];
 }
 
-function saveDefaults(form) {
-  PropertiesService.getUserProperties().setProperties(form);
+function savePreferences(prefs) {
+  unpackPrefs(prefs);
+  Logger.log("savePreferences: prefs = " + JSON.stringify(prefs, null, 2));
+  PropertiesService.getDocumentProperties().setProperties(prefs);
+}
+
+function saveDefaults(prfs) {
+  unpackPrefs(prefs);
+  PropertiesService.getUserProperties().setProperties(prefs);
 }

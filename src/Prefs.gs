@@ -60,7 +60,7 @@ var fixes = [
   },
 ]
 
-var fixByName = {};
+var fixesByName = {};
 
 for (var key in fixes) {
   var f = fixes[key];
@@ -68,11 +68,13 @@ for (var key in fixes) {
     f.dflt = true;
   }
   f.enabled = f.dflt;
-  fixByName[f.name] = f;
+  fixesByName[f.name] = f;
 }
 
 var ignoredFonts = ["Consolas", "Courier", "Lucida Sans Typewriter"];
 var ignoredFontsName = "ignorable-fonts";
+
+var exports = ["fixesByName", "ignoredFonts", "ignoredFontsName"];
 
 function showPreferences() {
   var dialog = HtmlService.createTemplateFromFile("PrefsDialog");

@@ -1,5 +1,6 @@
 <!-- styles -->
 <link rel="stylesheet" href="https://ssl.gstatic.com/docs/script/css/add-ons.css">
+<script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
 <style>
   button.right {
   float: right;
@@ -9,9 +10,12 @@
 <!-- content -->
 <form id="prefs">
 <div class="block">
-  <? for ( var key in fixes ) { ?>
-  <input type="checkbox" name="fix" value="<?= key ?>" id="pref-<?= key ?>"  onclick="updateSaveButton()" <?= fixes[key].dflt ? 'checked' : ''?> > <?= fixes[key].desc ?></input><br>
+  <? for (var i = 0; i < fixes.length; i++) { ?>
+  <input class="pref" type="checkbox" name="fix" value="<?= key ?>" id="pref-<?= fixes[i].name ?>">
+  <label><?= fixes[i].desc ?></label><br>
   <? } ?>
+  <textarea class="pref" name="<?= ignoredFontsName ?>" id="<?= ignoredFontsName ?>" rows="3" style="left-indent: 3em; width: 100%"
+            onchange="updateSaveButton()"></textarea>
 </div>
 </form>
 <div class="button-bar">
@@ -21,40 +25,32 @@
 <div class="button-bar-right">
   <button id="save-default" onclick="saveDefault()">Set as default</button>
 </div>
+<script>alert("aha");</script>
 
 <!-- scripts -->
 <script>
-var prefs = {
-  <? for ( var key in prefs ) { ?>
-    '<?= key ?>': Boolean(<?= prefs[key] ?>),
-  <? } ?>
-  '': '',
-};
+console.log("before");
+var i = 0;
+console.log(i++);
+var fixesByName = JSON.parse( <?= JSON.stringify(fixesByName); ?> );
+console.log(i++);
+$("input.pref").each(function() {
+  this.checked = fixByName[$(this).attr("value")].enabled;
+});
+console.log(i++);
+$("#"+ignoredFontsName).value(ignoredFonts.join(", "));
+console.log("after");
+</script>
 
-delete prefs[''];
-
-var defaults = {
-  <? for ( var key in defaults ) { ?>
-    '<?= key ?>': Boolean(<?= defaults[key] ?>),
-  <? } ?>
-  '': '',
-};
-
-delete defaults[''];
-
-for (var key in defaults) {
-  console.log("html: defaults[" + key + "] = " + defaults[key]);
-}
-
-
-updateSaveButton();
+<script>
+//updateSaveButton();
 
 function save() {
   this.disabled = true;
 
   google.script.run
           .withSuccessHandler(close)
-          .savePreferences(form());
+          .savePreferences();
 }
 
 function saveDefault() {
@@ -64,16 +60,7 @@ function saveDefault() {
 
   google.script.run
           .withSuccessHandler(updateSaveButton)
-          .saveDefaults(form());
-}
-
-function ms(m) {
-  var s = "";
-  for (var key in m) {
-    if (s.length > 0) { s += ", "; }
-    s += key + ": " + m[key] + " (" + toType(m[key]) + ")"
-  }
-  return s;
+          .saveDefaults();
 }
 
 function updateSaveButton() {
@@ -85,24 +72,22 @@ function updateSaveButton() {
 }
 
 function isDefault() {
-  var current = formValue();
-
-  console.log("defaults: " + ms(defaults));
-  console.log("current: " + ms(current));
-  for (var key in defaults) {
-    console.log("isDefault: " + key + ": " + defaults[key] + "/" + current[key]);
-    if (defaults[key] !== current[key]) {
-      console.log("!=");
+  $("#prefs input").each(function(index) {
+    var n = $(this);
+    var f = fixesByName[n.attr("value")];
+    if (f.dflt != n.is(":checked")) {
       return false;
     }
   }
-  console.log("==");
+  var current = formValue();
+
+  for (var key in defaults) {
+    if (defaults[key] !== current[key]) {
+      return false;
+    }
+  }
 
   return true;
-}
-
-function toType(obj) {
-  return ({}).toString.call(obj);
 }
 
 function formValue() {
@@ -110,17 +95,9 @@ function formValue() {
 
   var value = {};
 
-  console.log('inputs: ' + inputs.length + ": " + inputs);
   for (var i = 0; i < inputs.length; i++) {
     var e = inputs[i];
-    console.log(i + ": " + toType(e) + ": " + typeof e1 + ": " + e);
-    console.log("   " + e.name + ": " + e.checked);
     value[e.value] = e.checked;
-  }
-
-  console.log("value: " + value);
-  for (var key in value) {
-    console.log("value[" + key + "] = " + value[key]);
   }
   return value;
 }
@@ -132,4 +109,5 @@ function form() {
 function close() {
   google.script.host.close();
 }
+
 </script>

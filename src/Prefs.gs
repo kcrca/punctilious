@@ -1,57 +1,78 @@
-var fixes = {
-  'emdash': {
+var fixes = [
+  {
+    name: 'emdash',
     desc: '"--" becomes — (em dash)',
     re: /--/g,
     repl: '—',
   },
-  'emdash-nospaces': {
+  {
+    name: 'emdash-nospaces',
     desc: 'remove spaces around — (em dash)',
     re: / *— */g,
     repl: '—',
   },
-  'emdash-spaces': {
+  {
+    name: 'emdash-spaces',
     desc: 'require spaces around — (em dash)',
     re: / *— */g,
     repl: ' — ',
+    dflt: false,
   },
-  'endash': {
+  {
+    name: 'endash',
     desc: '"-" between numbers becomes — (en dash)',
     re: /([0-9] *)-( *[0-9])/g,
     repl: '$1–$2',
   },
-  'endash-nospaces': {
+  {
+    name: 'endash-nospaces',
     desc: 'remove spaces around — (en dash)',
     re: / *– */g,
     repl: '–',
   },
-  'minus': {
+  {
+    name: 'minus',
     desc: '"-" before a number becomes − (math minus)',
     re: /- *([0-9])/g,
     repl: '−$1',
   },
-  'minus-nospaces': {
+  {
+    name: 'minus-nospaces',
     desc: 'remove spaces after − (math minus)',
     re: /− */g,
     repl: '−',
   },
-  'hyphen-nospaces': {
+  {
+    name: 'hyphen-nospaces',
     desc: 'remove spaces around - (hyphen)',
     re: / *- */g,
     repl: '-',
   },
-  'extra-nospaces': {
+  {
+    name: 'extra-nospaces',
     desc: 'remove extra spaces (two or more)',
     re: '/  +/',
     repl: ' ',
   },
-}
+  {
+    name: 'ignore-fonts',
+    desc: 'Ignore text in fonts:',
+  },
+]
+
+var fixByName = {};
 
 for (var key in fixes) {
   var f = fixes[key];
   if (!f.hasOwnProperty('dflt')) {
     f.dflt = true;
   }
+  f.enabled = f.dflt;
+  fixByName[f.name] = f;
 }
+
+var ignoredFonts = ["Consolas", "Courier", "Lucida Sans Typewriter"];
+var ignoredFontsName = "ignorable-fonts";
 
 function showPreferences() {
   var dialog = HtmlService.createTemplateFromFile("PrefsDialog");
@@ -59,16 +80,21 @@ function showPreferences() {
   var userPrefs = PropertiesService.getUserProperties();
   var defaults = {};
 
-  for (var key in fixes) {
-    defaults[key] = userPrefs.getProperty(key) || fixes[key].dflt;
+  for (var i = 0; i < fixes.length; i++) {
+    f = fixes[i];
+    defaults[f.name] = userPrefs.getProperty(f.name) || f.dflt;
   }
+  var ignFontsKey = "ignore-fonts-which";
+  defaults[ignFontsKey] = userPrefs.getProperty(ignFontsKey) || "Consolas, Courier, Lucida Sans Typewriter";
 
   var docPrefs = PropertiesService.getDocumentProperties();
-  var prefs = {};
+  var prefs = [];
 
-  for (var key in fixes) {
-    prefs[key] = docPrefs.getProperty(key) || defaults[key];
+  for (var i = 0; i < fixes.length; i++) {
+    f = fixes[i];
+    prefs[f.name] = docPrefs.getProperty(f.name) || defaults[f.name];
   }
+  prefs[ignFontsKey] = docPrefs.getProperty(ignFontsKey) || defaults[ignFontsKey];
 
   dialog.defaults = defaults;
   dialog.prefs = prefs;

@@ -11,9 +11,9 @@ function onInstall(e) {
 }
 
 function runFixes(text) {
-  for (var fix in fixes) {
-    var f = fixes[fix];
-    if (fixes.hasOwnProperty(fix)) {
+  for (var name in fixes) {
+    f = fixes[name];
+    if (f.re) {
       text = text.replace(f.re, f.repl);
     }
   }

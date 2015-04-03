@@ -1,4 +1,8 @@
-var fixes = [
+var fixes = {};
+var fixOrder = [];
+
+// build fixes and fixOrder.
+var orderedFixes = [
   {
     name: 'emdash',
     desc: '"--" becomes — (em dash)',
@@ -58,16 +62,16 @@ var fixes = [
     name: 'ignore-fonts',
     desc: 'Ignore text in fonts:',
   },
-]
+];
 
-var fixesByName = {};
-
-for (var key in fixes) {
-  var f = fixes[key];
+for (var i in orderedFixes) {
+  var f = orderedFixes[i];
+  f.pos = i;
   if (!f.hasOwnProperty('dflt')) {
     f.dflt = true;
   }
-  fixesByName[f.name] = f;
+  fixes[f.name] = f;
+  fixOrder.push(f.name);
 }
 
 var ignoredFonts = {
@@ -75,23 +79,23 @@ var ignoredFonts = {
   dflt: ["Consolas", "Courier", "Lucida Sans Typewriter"].sort(),
 };
 
-var exports = ["fixesByName", "ignoredFonts"];
+var exports = ["fixes", "ignoredFonts"];
 
 function showPreferences() {
   var dialog = HtmlService.createTemplateFromFile("PrefsDialog");
 
   var userPrefs = PropertiesService.getUserProperties();
 
-  for (var i = 0; i < fixes.length; i++) {
-    f = fixes[i];
+  for (var name in fixes) {
+    f = fixes[name];
     f.dflt = userPrefs.getProperty(f.name) || f.dflt;
   }
   ignoredFonts.dflt = userPrefs.getProperty(ignoredFonts.name) || ignoredFonts.dflt;
 
   var docPrefs = PropertiesService.getDocumentProperties();
 
-  for (var i = 0; i < fixes.length; i++) {
-    f = fixes[i];
+  for (var name in fixes) {
+    f = fixes[name];
     f.cur = docPrefs.getProperty(f.name) || f.dflt;
   }
   ignoredFonts.cur = userPrefs.getProperty(ignoredFonts.name) || ignoredFonts.dflt;
@@ -101,7 +105,7 @@ function showPreferences() {
 
 function unpackPrefs(prefs) {
   ignoredFonts = prefs["ignoredFonts"];
-  fixesByName = prefs["fixesByName"];
+  fixes = prefs["fixes"];
 }
 
 function savePreferences(prefs) {

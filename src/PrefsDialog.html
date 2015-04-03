@@ -10,8 +10,8 @@
 <!-- content -->
 <form id="prefs">
 <div class="block">
-  <? for (var i = 0; i < fixes.length; i++) { ?>
-  <?   var f = fixes[i]; ?>
+  <? for (var i in fixOrder) { ?>
+  <?   var f = fixes[fixOrder[i]]; ?>
   <input class="pref" type="checkbox" name="fix" value="<?= f.name ?>" id="pref-<?= f.name ?>">
   <label><?= f.desc ?></label><br>
   <? } ?>
@@ -46,7 +46,7 @@ var igFonts = $("#"+ignoredFonts.name);
 boxes.each(function() {
   var $this = $(this);
   var name = $this.attr("value");
-  var f = fixesByName[name];
+  var f = fixes[name];
   this.checked = f.cur;
   $this.change(function() {
     f.cur = this.checked;
@@ -152,7 +152,7 @@ updateSaveDefaultsButton();
 //function isDefault() {
 //  $("#prefs input").each(function(index) {
 //    var n = $(this);
-//    var f = fixesByName[n.attr("value")];
+//    var f = fixes[n.attr("value")];
 //    if (f.dflt != n.is(":checked")) {
 //      return false;
 //    }

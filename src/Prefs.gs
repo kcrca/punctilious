@@ -64,6 +64,8 @@ var orderedFixes = [
   },
 ];
 
+//  PropertiesService.getUserProperties().deleteAllProperties();
+//  PropertiesService.getDocumentProperties().deleteAllProperties();
 for (var i in orderedFixes) {
   var f = orderedFixes[i];
   f.pos = i;
@@ -72,6 +74,10 @@ for (var i in orderedFixes) {
   }
   fixes[f.name] = f;
   fixOrder.push(f.name);
+}
+
+function showemdash(prefix) {
+  Logger.log(prefix + ": " + JSON.stringify(fixes['emdash'], null, 2));
 }
 
 var ignoredFonts = {
@@ -84,22 +90,12 @@ var exports = ["fixes", "ignoredFonts"];
 function showPreferences() {
   var dialog = HtmlService.createTemplateFromFile("PrefsDialog");
 
-  var userPrefs = PropertiesService.getUserProperties();
+  showemdash("showPreferences start");
 
-  for (var name in fixes) {
-    f = fixes[name];
-    f.dflt = userPrefs.getProperty(f.name) || f.dflt;
-  }
-  ignoredFonts.dflt = userPrefs.getProperty(ignoredFonts.name) || ignoredFonts.dflt;
+  readProperties("dflt", PropertiesService.getUserProperties());
+  readProperties("cur", PropertiesService.getDocumentProperties());
 
-  var docPrefs = PropertiesService.getDocumentProperties();
-
-  for (var name in fixes) {
-    f = fixes[name];
-    f.cur = docPrefs.getProperty(f.name) || f.dflt;
-  }
-  ignoredFonts.cur = userPrefs.getProperty(ignoredFonts.name) || ignoredFonts.dflt;
-
+  showemdash("showPreferences end");
   DocumentApp.getUi().showModalDialog(dialog.evaluate(), "Preferences");
 }
 
@@ -108,13 +104,32 @@ function unpackPrefs(prefs) {
   fixes = prefs["fixes"];
 }
 
+function readProperties(field, props) {
+  for (var name in fixes) {
+    f = fixes[name];
+    var v = props.getProperty(f.name);
+    f[field] = v != undefined ? v == "true" : f.dflt;
+  }
+  fonts = props.getProperty(ignoredFonts.name);
+  ignoredFonts[field] = fonts ? fonts.split(/, /) : ignoredFonts.dflt;
+  Logger.log("readProperties('" + field + "', ...)\n" + JSON.stringify(fixes, null, 2));
+}
+
+function writeProperties(props) {
+  for (var name in fixes) {
+    props.setProperty(name, fixes[name].cur);
+  }
+  props.setProperty(ignoredFonts.name, ignoredFonts.cur.join(", "));
+}
+
 function savePreferences(prefs) {
   unpackPrefs(prefs);
   Logger.log("savePreferences: prefs = " + JSON.stringify(prefs, null, 2));
-  PropertiesService.getDocumentProperties().setProperties(prefs);
+  writeProperties(PropertiesService.getDocumentProperties());
+  showemdash("savePreferences");
 }
 
 function saveDefaults(prfs) {
   unpackPrefs(prefs);
-  PropertiesService.getUserProperties().setProperties(prefs);
+  writeProperties(PropertiesService.geUserProperties());
 }

@@ -48,6 +48,7 @@ boxes.each(function() {
   var name = $this.attr("value");
   var f = fixes[name];
   this.checked = f.cur;
+  console.log("box " + name + ": " + f.cur + ", this.checked = " + this.checked);
   $this.change(function() {
     f.cur = this.checked;
   });
@@ -125,67 +126,5 @@ function updateSaveDefaultsButton() {
 }
 
 updateSaveDefaultsButton();
-
-</script>
-
-<script>
-//updateSaveDefaultsButton();
-
-//function saveDefault() {
-//  this.disabled = true;
-//
-//  defaults = formname();
-//
-//  google.script.run
-//          .withSuccessHandler(updateSaveDefaultsButton)
-//          .saveDefaults();
-//}
-//
-//function updateSaveDefaultsButton() {
-//  var button = document.getElementById('save-default');
-//  var currentDefault = isDefault();
-//
-//  button.disabled = currentDefault;
-//  button.innerHTML = currentDefault ? 'Saved as default' : 'Set as default';
-//}
-//
-//function isDefault() {
-//  $("#prefs input").each(function(index) {
-//    var n = $(this);
-//    var f = fixes[n.attr("value")];
-//    if (f.dflt != n.is(":checked")) {
-//      return false;
-//    }
-//  }
-//  var current = formname();
-//
-//  for (var key in defaults) {
-//    if (defaults[key] !== current[key]) {
-//      return false;
-//    }
-//  }
-//
-//  return true;
-//}
-//
-//function formname() {
-//  var inputs = form().getElementsByTagName('input');
-//
-//  var name = {};
-//
-//  for (var i = 0; i < inputs.length; i++) {
-//    var e = inputs[i];
-//    name[e.name] = e.checked;
-//  }
-//  return name;
-//}
-//
-//function form() {
-//  return document.getElementById('prefs');
-//}
-//
-//function close() {
-//  google.script.host.close();
-//}
 
 </script>

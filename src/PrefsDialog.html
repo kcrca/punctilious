@@ -36,7 +36,6 @@ var prefs = {};
 <?   if (true) { ?>
 var <?!=v?> = <?!=JSON.stringify(eval(v));?>;
 prefs["<?!=v?>"] = <?!=v?>;
-console.log("<?!=v?> = " + JSON.stringify(<?!=v?>, null, 2));
 <?   } ?>
 <? } ?>
 
@@ -48,7 +47,6 @@ boxes.each(function() {
   var name = $this.attr("value");
   var f = fixes[name];
   this.checked = f.cur;
-  console.log("box " + name + ": " + f.cur + ", this.checked = " + this.checked);
   $this.change(function() {
     f.cur = this.checked;
   });
@@ -65,7 +63,6 @@ $(".pref").change(updateSaveDefaultsButton);
 function save() {
   this.disabled = true;
 
-  console.log("save:\n" + JSON.stringify(prefs, null, 2));
   google.script.run
           .withSuccessHandler(close)
           .savePreferences(prefs);
@@ -91,8 +88,6 @@ function canonicalizeFontNames() {
   var valStr = curStr.trim().replace(/\s+/g, " ");
   ignoredFonts.cur = valStr.split(/, /).sort();
   valStr = ignoredFonts.cur.join(", ");
-  console.log("curStr = '" + curStr + "'");
-  console.log("valStr = '" + valStr + "'");
   if (valStr != curStr) {
     ig.val(valStr);
   }
@@ -105,22 +100,17 @@ function updateSaveDefaultsButton() {
   var val = ig.val().split(/, /) || [];
   // canonicalizedFontNames makes sure things are sorted.
   isDflt = val.toString() == ignoredFonts.dflt.toString();
-  if (!isDflt) {
-    console.log("mismatch: " + ignoredFonts.name + ": is " + val + ", dflt " + ignoredFonts.dflt);
-  }
 
   if (isDflt) {
     $("input.prefs").each(function() {
       var f = prefsByName[$(this).attr("value")];
       if (this.selected != f.dflt) {
         isDflt = false;
-        console.log("mismatch: " + f.name + ": is " + this.selected + ", dflt " + f.dflt);
       }
       return isDflt;
     });
   }
 
-  console.log("isDflt = " + isDflt);
   var button = $("#save-default");
   button.prop("disabled", isDflt);
 }

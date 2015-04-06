@@ -119,7 +119,6 @@ function Reviser() {
     }
   }
   this._modify = function(fn, attrFn) {
-    Logger.log("modify");
     var doc = DocumentApp.getActiveDocument();
     var selection = doc.getSelection();
     var builder = doc.newRange();
@@ -157,12 +156,11 @@ function Reviser() {
       return hasText;
     }
 
+    var hasText;
     if (selection) {
-      Logger.log("selected");
-      var hasText = processRange(selection.getRangeElements(), 0);
+      hasText = processRange(selection.getRangeElements(), 0);
     } else {
-      Logger.log("!selected");
-      var hasText = processRange(DocumentApp.getActiveDocument().getBody(), 0);
+      hasText = processRange(DocumentApp.getActiveDocument().getBody(), 0);
     }
 
     if (!hasText) {
@@ -174,7 +172,6 @@ function Reviser() {
     }
   };
   this.reviseText = function (fn, attrFn) {
-    Logger.log("reviseText");
     var self = this;
     this.depth = 0;
     this._modify(fn, attrFn);

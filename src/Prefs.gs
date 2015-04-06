@@ -76,10 +76,6 @@ for (var i in orderedFixes) {
   fixOrder.push(f.name);
 }
 
-function showemdash(prefix) {
-  Logger.log(prefix + ": " + JSON.stringify(fixes['emdash'], null, 2));
-}
-
 var ignoredFonts = {
   name: "ignored-fonts",
   dflt: ["Consolas", "Courier", "Lucida Sans Typewriter"].sort(),
@@ -113,7 +109,6 @@ function readProperties(field, props) {
   }
   fonts = props.getProperty(ignoredFonts.name);
   ignoredFonts[field] = fonts ? fonts.split(/, /) : ignoredFonts.dflt;
-  Logger.log("readProperties('" + field + "', ...)\n" + JSON.stringify(fixes, null, 2));
 }
 
 function writeProperties(props) {
@@ -125,9 +120,7 @@ function writeProperties(props) {
 
 function savePreferences(prefs) {
   unpackPrefs(prefs);
-  Logger.log("savePreferences: prefs = " + JSON.stringify(prefs, null, 2));
   writeProperties(PropertiesService.getDocumentProperties());
-  showemdash("savePreferences");
 }
 
 function saveDefaults(prfs) {

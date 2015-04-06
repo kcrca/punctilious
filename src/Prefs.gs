@@ -87,15 +87,16 @@ var ignoredFonts = {
 
 var exports = ["fixes", "ignoredFonts"];
 
-function showPreferences() {
-  var dialog = HtmlService.createTemplateFromFile("PrefsDialog");
+loadProperties();
 
-  showemdash("showPreferences start");
-
+function loadProperties() {
   readProperties("dflt", PropertiesService.getUserProperties());
   readProperties("cur", PropertiesService.getDocumentProperties());
+}
 
-  showemdash("showPreferences end");
+function showPreferences() {
+  var dialog = HtmlService.createTemplateFromFile("PrefsDialog");
+  loadProperties();
   DocumentApp.getUi().showModalDialog(dialog.evaluate(), "Preferences");
 }
 

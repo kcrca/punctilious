@@ -10,7 +10,48 @@ function onInstall(e) {
   onOpen(e);
 }
 
-function runFixes(text) {
+function ignoreText(attrs, node, reviser) {
+  reviser.dbg("ignoreText");
+  var f = fixes['ignore-fonts'];
+  reviser.dbg("f: " + JSON.stringify(f, null, 2));
+  reviser.dbg("ignoredFonts: " + JSON.stringify(ignoredFonts, null, 2));
+  if (!f.cur || ignoredFonts.cur.length == 0) {
+    return false;
+  }
+  reviser.dbg("f.fontRE : " + f.fontRE);
+  if (!f.fontRE) {
+    var regexps = [];
+    for (var i in ignoredFonts.cur) {
+      name = ignoredFonts.cur[i];
+      regexps.push(name.replace(/ /g, "[ .-_]?"));
+    }
+    f.fontRE = new RegExp("^(" + regexps.join("|") + ")$");
+    reviser.dbg("f.fontRE : " + f.fontRE);
+  }
+  var font = fontFor(attrs, node, reviser);
+  reviser.dbg("ignoreText: font = " + font);
+  return font.match(f.fontRE);
+}
+
+function fontFor(attrs, node, reviser) {
+  var attrSets = [attrs, node.getAttributes(), DocumentApp.getActiveDocument().getBody().getAttributes()];
+  for (var i in attrSets) {
+    var a = attrSets[i];
+    var font = attrs[DocumentApp.Attribute.FONT_FAMILY]
+    if (font) {
+      return font;
+    }
+  }
+  // The default doc font is Arial 11. Body should tell me this font instead of me just "knowing" it,
+  // but it doesn't.
+  return "Arial";
+}
+
+function runFixes(text, attrs, node, start, end, reviser) {
+  if (ignoreText(attrs, node, reviser)) {
+    return text;
+  }
+
   for (var name in fixes) {
     f = fixes[name];
     if (f.re) {

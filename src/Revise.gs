@@ -20,20 +20,25 @@ function Reviser() {
   };
 
   self = this;
-  var prefStr = function(depth) {
+  var prefStr = function() {
     var s = "";
-    for (var i = 0; i < depth; i++) {
+    for (var i = 0; i < this.depth; i++) {
       s += "    ";
     }
     return s;
   }
 
-  this.dbg = function(depth, s) {
-    return;
-    DocumentApp.getActiveDocument().appendParagraph(prefStr(depth) + s);
+  var dbgCnt = 0;
+
+  this.dbg = function(s) {
+    if (++dbgCnt > 100) {
+      runaway.app();
+    }
+    Logger.log(prefStr() + s);
+    DocumentApp.getActiveDocument().appendParagraph(prefStr() + s);
   }
 
-  function modifyTextNode(fn, attrFn, elem, range, depth) {
+  function modifyTextNode(fn, attrFn, elem, range) {
     // elem is the Text element.
     // text is the text in the original node, not just the selected part.
     var text = elem.getText();
@@ -64,10 +69,10 @@ function Reviser() {
     var seenFirst = false;
     var pos = startIndex;
     for (var r = 0; r < changes.length - 1; r++) {
-      self.dbg(depth, "--- r = " + r);
+      self.dbg("--- r = " + r);
       var start = changes[r];
       var end = changes[r+1] - 1;  // end is inclusive, just like endIndex
-      self.dbg(depth, "before: start..end: " + start + ".." + end);
+      self.dbg("before: start..end: " + start + ".." + end);
       if (start > endIndex) {
         break;
       }
@@ -81,14 +86,14 @@ function Reviser() {
       if (end > endIndex) {
         end = endIndex;
       }
-      self.dbg(depth, "after:  start..end: " + start + ".." + end);
+      self.dbg("after:  start..end: " + start + ".." + end);
 
       var curAttrs = origAttrs[r]; // attrs for the entire old text
-      self.dbg(depth, "curAttrs: " + curAttrs);
+      self.dbg("curAttrs: " + curAttrs);
       var curText = text.substring(start, end + 1);
-      self.dbg(depth, "curText: " + curText);
-      var newText = fn(curText, curAttrs);
-      self.dbg(depth, "newText: " + newText);
+      self.dbg("curText: " + curText);
+      var newText = fn(curText, curAttrs, elem, start, end, self);
+      self.dbg("newText: " + newText);
       var newAttrs = [curAttrs];
       if (attrFn) {
         newAttrs = attrFn(curText, curAttrs);
@@ -96,7 +101,7 @@ function Reviser() {
           newAttrs = [null];
         }
       }
-      self.dbg(depth, "pos: " + pos + ", curText = '" + curText + "', newText = '" + newText);
+      self.dbg("pos: " + pos + ", curText = '" + curText + "', newText = '" + newText);
       elem.deleteText(pos, pos + end - start);
       // inserting at length+1 is not allowed, must special-case an append
       elem.insertText(pos, newText);
@@ -105,11 +110,11 @@ function Reviser() {
       }
       // Apply the first, char-specific attrs (if any)
       for (var a = 0; a < newAttrs.length - 1; a++) {
-      var attrs = newAttrs[a];
-      // null means "use default"
-      if (attrs != null) {
-        elem.setAttributes(pos + a, pos + a, attrs);
-      }
+        var attrs = newAttrs[a];
+        // null means "use default"
+        if (attrs != null) {
+          elem.setAttributes(pos + a, pos + a, attrs);
+        }
       }
       // Apply the last attr to the remainder of the text.
       var attrs = newAttrs[newAttrs.length-1]
@@ -126,13 +131,13 @@ function Reviser() {
     var selection = doc.getSelection();
     var builder = doc.newRange();
 
-    var processRange = function(ranges, depth) {
-      self.dbg(depth, "processRange, len " + ranges.length);
+    var processRange = function(ranges) {
+      self.dbg("processRange, len " + ranges.length);
       var hasText = false;
       for (var i = 0; i < ranges.length; i++) {
         var range = ranges[i];
         var element = range.getElement();
-        self.dbg(depth, i + ": " + element.getType());
+        self.dbg(i + ": " + element.getType());
 
         if (self.ignoreElement(element)) {
           continue;
@@ -145,17 +150,19 @@ function Reviser() {
         // don't have to think about partial non-Text elements when recursing.
         if (element.getType() != DocumentApp.ElementType.TEXT) {
           var numKids = element.getNumChildren()
-          self.dbg(depth, "numKids: " + numKids);
+          self.dbg("numKids: " + numKids);
           if (numKids == 0) {
             continue;
           }
           var rb = DocumentApp.getActiveDocument().newRange();
           rb.addElementsBetween(element.getChild(0), element.getChild(numKids - 1));
           var newRanges = rb.build().getRangeElements();
-          self.dbg(depth, "newRanges: " + newRanges + ": " + newRanges.length);
-          processRange(newRanges, depth + 1);
+          self.dbg("newRanges: " + newRanges + ": " + newRanges.length);
+          this.depth++;
+          processRange(newRanges);
+          this.depth--;
         } else {
-          modifyTextNode(fn, attrFn, element, range, depth);
+          modifyTextNode(fn, attrFn, element, range);
         }
       }
       return hasText;
@@ -180,6 +187,7 @@ function Reviser() {
   this.reviseText = function (fn, attrFn) {
     Logger.log("reviseText");
     var self = this;
+    this.depth = 0;
     this._modify(fn, attrFn);
   };
 }

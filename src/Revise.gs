@@ -52,6 +52,7 @@ function Reviser() {
       startIndex = 0;
       endIndex = text.length - 1;
     }
+    var hasText = false;
 
     // Loop through the segments of the text that share the same attributes.
 
@@ -84,6 +85,7 @@ function Reviser() {
       if (end > endIndex) {
         end = endIndex;
       }
+      hasText = start != end || hasText;
 
       var curAttrs = origAttrs[r]; // attrs for the entire old text
       var curText = text.substring(start, end + 1);
@@ -117,8 +119,10 @@ function Reviser() {
 
       pos += newText.length;
     }
+    return hasText;
   }
   this._modify = function(fn, attrFn) {
+    Logger.log("modify");
     var doc = DocumentApp.getActiveDocument();
     var selection = doc.getSelection();
     var builder = doc.newRange();
@@ -147,10 +151,10 @@ function Reviser() {
           rb.addElementsBetween(element.getChild(0), element.getChild(numKids - 1));
           var newRanges = rb.build().getRangeElements();
           this.depth++;
-          processRange(newRanges);
+          hasText = processRange(newRanges) || hasText;
           this.depth--;
         } else {
-          modifyTextNode(fn, attrFn, element, range);
+          hasText = modifyTextNode(fn, attrFn, element, range) || hasText;
         }
       }
       return hasText;
@@ -166,9 +170,6 @@ function Reviser() {
     if (!hasText) {
       var ui = DocumentApp.getUi();
       ui.alert('No text selected', 'Please select the text you want to modify.', ui.ButtonSet.OK);
-    }
-    else {
-      doc.setSelection(builder.build());
     }
   };
   this.reviseText = function (fn, attrFn) {

@@ -69,10 +69,8 @@ function Reviser() {
     var seenFirst = false;
     var pos = startIndex;
     for (var r = 0; r < changes.length - 1; r++) {
-      self.dbg("--- r = " + r);
       var start = changes[r];
       var end = changes[r+1] - 1;  // end is inclusive, just like endIndex
-      self.dbg("before: start..end: " + start + ".." + end);
       if (start > endIndex) {
         break;
       }
@@ -86,14 +84,10 @@ function Reviser() {
       if (end > endIndex) {
         end = endIndex;
       }
-      self.dbg("after:  start..end: " + start + ".." + end);
 
       var curAttrs = origAttrs[r]; // attrs for the entire old text
-      self.dbg("curAttrs: " + curAttrs);
       var curText = text.substring(start, end + 1);
-      self.dbg("curText: " + curText);
       var newText = fn(curText, curAttrs, elem, start, end, self);
-      self.dbg("newText: " + newText);
       var newAttrs = [curAttrs];
       if (attrFn) {
         newAttrs = attrFn(curText, curAttrs);
@@ -101,7 +95,6 @@ function Reviser() {
           newAttrs = [null];
         }
       }
-      self.dbg("pos: " + pos + ", curText = '" + curText + "', newText = '" + newText);
       elem.deleteText(pos, pos + end - start);
       // inserting at length+1 is not allowed, must special-case an append
       elem.insertText(pos, newText);
@@ -132,12 +125,10 @@ function Reviser() {
     var builder = doc.newRange();
 
     var processRange = function(ranges) {
-      self.dbg("processRange, len " + ranges.length);
       var hasText = false;
       for (var i = 0; i < ranges.length; i++) {
         var range = ranges[i];
         var element = range.getElement();
-        self.dbg(i + ": " + element.getType());
 
         if (self.ignoreElement(element)) {
           continue;
@@ -150,14 +141,12 @@ function Reviser() {
         // don't have to think about partial non-Text elements when recursing.
         if (element.getType() != DocumentApp.ElementType.TEXT) {
           var numKids = element.getNumChildren()
-          self.dbg("numKids: " + numKids);
           if (numKids == 0) {
             continue;
           }
           var rb = DocumentApp.getActiveDocument().newRange();
           rb.addElementsBetween(element.getChild(0), element.getChild(numKids - 1));
           var newRanges = rb.build().getRangeElements();
-          self.dbg("newRanges: " + newRanges + ": " + newRanges.length);
           this.depth++;
           processRange(newRanges);
           this.depth--;

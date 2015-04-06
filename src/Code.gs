@@ -11,14 +11,10 @@ function onInstall(e) {
 }
 
 function ignoreText(attrs, node, reviser) {
-  reviser.dbg("ignoreText");
   var f = fixes['ignore-fonts'];
-  reviser.dbg("f: " + JSON.stringify(f, null, 2));
-  reviser.dbg("ignoredFonts: " + JSON.stringify(ignoredFonts, null, 2));
   if (!f.cur || ignoredFonts.cur.length == 0) {
     return false;
   }
-  reviser.dbg("f.fontRE : " + f.fontRE);
   if (!f.fontRE) {
     var regexps = [];
     for (var i in ignoredFonts.cur) {
@@ -26,10 +22,8 @@ function ignoreText(attrs, node, reviser) {
       regexps.push(name.replace(/ /g, "[ .-_]?"));
     }
     f.fontRE = new RegExp("^(" + regexps.join("|") + ")$");
-    reviser.dbg("f.fontRE : " + f.fontRE);
   }
   var font = fontFor(attrs, node, reviser);
-  reviser.dbg("ignoreText: font = " + font);
   return font.match(f.fontRE);
 }
 
@@ -42,7 +36,7 @@ function fontFor(attrs, node, reviser) {
       return font;
     }
   }
-  // The default doc font is Arial 11. Body should tell me this font instead of me just "knowing" it,
+  // The default doc font is Arial 11. Body should tell me this instead of me just "knowing" it,
   // but it doesn't.
   return "Arial";
 }

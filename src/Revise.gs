@@ -26,7 +26,7 @@ function Reviser() {
       s += "    ";
     }
     return s;
-  }
+  };
 
   var dbgCnt = 0;
 
@@ -36,7 +36,7 @@ function Reviser() {
     }
     Logger.log(prefStr() + s);
     DocumentApp.getActiveDocument().appendParagraph(prefStr() + s);
-  }
+  };
 
   function modifyTextNode(fn, attrFn, elem, range) {
     // elem is the Text element.
@@ -112,7 +112,7 @@ function Reviser() {
         }
       }
       // Apply the last attr to the remainder of the text.
-      var attrs = newAttrs[newAttrs.length-1]
+      var attrs = newAttrs[newAttrs.length-1];
       if (attrs != null) {
         elem.setAttributes(pos + newAttrs.length - 1, pos + newText.length - 1, attrs);
       }
@@ -122,7 +122,6 @@ function Reviser() {
     return hasText;
   }
   this._modify = function(fn, attrFn) {
-    Logger.log("modify");
     var doc = DocumentApp.getActiveDocument();
     var selection = doc.getSelection();
     var builder = doc.newRange();
@@ -138,12 +137,12 @@ function Reviser() {
         }
         if (!element.editAsText) {
           continue;
-        }
+        };
 
         // If it is editable as text and partial, it will be a Text element, so we
         // don't have to think about partial non-Text elements when recursing.
         if (element.getType() != DocumentApp.ElementType.TEXT) {
-          var numKids = element.getNumChildren()
+          var numKids = element.getNumChildren();
           if (numKids == 0) {
             continue;
           }
@@ -158,7 +157,7 @@ function Reviser() {
         }
       }
       return hasText;
-    }
+    };
 
     var hasText;
     if (selection) {

@@ -27,17 +27,23 @@ function ignoreText(attrs, node, reviser) {
   return font.match(f.fontRE);
 }
 
+// These are document defaults that aren't specified in the attributes
+// of the document body. Why? I don't know.
+var defaultAttrs = {};
+defaultAttrs[DocumentApp.Attribute.FONT_FAMILY] = "Arial";
+defaultAttrs[DocumentApp.Attribute.FONT_SIZE] = 11;
+defaultAttrs[DocumentApp.Attribute.FOREGROUND_COLOR] = "#0";
+
 function fontFor(attrs, node, reviser) {
-  var attrSets = [attrs, node.getAttributes(), DocumentApp.getActiveDocument().getBody().getAttributes()];
+  var attrSets = [attrs, node.getAttributes(), DocumentApp.getActiveDocument().getBody().getAttributes(), defaultAttrs];
   for (var i in attrSets) {
     var a = attrSets[i];
-    var font = attrs[DocumentApp.Attribute.FONT_FAMILY]
+    var font = a[DocumentApp.Attribute.FONT_FAMILY];
     if (font) {
       return font;
     }
   }
-  // The default doc font is Arial 11. Body should tell me this instead of me just "knowing" it,
-  // but it doesn't.
+  alert("Iternal error: Could not find font family (should never happen");
   return "Arial";
 }
 

@@ -64,6 +64,7 @@ var orderedFixes = [
   },
 ];
 
+// Uncomment these to reset the properties during debugging.
 //  PropertiesService.getUserProperties().deleteAllProperties();
 //  PropertiesService.getDocumentProperties().deleteAllProperties();
 for (var i in orderedFixes) {

@@ -1,7 +1,7 @@
 function onOpen() {
   DocumentApp.getUi()
     .createAddonMenu()
-      .addItem('Punctiliousicize', 'bePunctilious')
+      .addItem('Punctiliousize', 'bePunctilious')
       .addItem('Preferences...', 'showPreferences')
     .addToUi();
 }
